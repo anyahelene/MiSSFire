@@ -15,7 +15,7 @@ DOCKER_YML_ORIGINAL="docker-compose.yml_original"
 function arg_parse {
 	usage="$(basename "$0") [-h] [-c (Copy MiSSFire files into the bank model)] [-d (Delete MiSSFire files from the bank model)] [-i (Build the necessary Docker images)]"
 
-	while getopts 'hcd' option; do
+	while getopts 'hcdi' option; do
 		case "$option" in
 			h) echo "$usage"
 			   exit
@@ -98,10 +98,10 @@ function delete_commons {
 
 function build_docker_images {
 	echo "Building Docker image: 'bankmodeldefault'."
-	docker build -t bankmodeldefault $MISSFIRE_CLIENT_DOCKER_IMAGE/Dockerfile
+	docker build -t bankmodeldefault $MISSFIRE_CLIENT_DOCKER_IMAGE
 
 	echo "Building Docker image: 'missfire'."
-	docker build -t missfire $MISSFIRE_SERVICES_DOCKER_IMAGE/Dockerfile
+	docker build -t missfire $MISSFIRE_SERVICES_DOCKER_IMAGE
 	
 	return 0
 }
