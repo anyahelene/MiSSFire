@@ -73,7 +73,7 @@ arg_parse "$@"
 show_config
 
 echo Checking...
-check_dir $MISSFIRE
+[ ! -z "$MISSFIRE" ] && check_dir $MISSFIRE
 check_dir $BANK
 check_dir $MISSFIRE_SERVICES
 check_dir $BANK_SERVICES
@@ -93,9 +93,21 @@ echo >> config/config.sh
 show_paths >> config/config.sh
 
 echo editing $DOCKER_YML
-sed -i.bak -e "s/^.*- MTLS=.*$/      - MTLS=$MTLS/" -e "s/^.*- TOKEN=.*$/      - TOKEN=$TOKEN/" $DOCKER_YML
+sed -i.bak -e "s/MTLS=.*$/MTLS=$MTLS/" -e "s/TOKEN=.*$/TOKEN=$TOKEN/" $DOCKER_YML
 echo editing $GUNICORN_CONFIG_PY
 sed -i.bak -e "s/^.*workers *= *.*$/workers = $WORKERS/" $GUNICORN_CONFIG_PY
 echo editing $CLIENT_PY
 sed -i.bak -e "s/^    numProcesses =.*$/    numProcesses = $CLIENTS/" -e "s/^ *IS_MISSFIRE *= *.*$/IS_MISSFIRE = $MTLS/" -e "s/^ *IS_MISSFIRE_TOKEN *= *.*$/IS_MISSFIRE_TOKEN = $TOKEN/" $CLIENT_PY
 
+echo Reconfigure successful. To rebuild docker images, please run:
+echo
+[ "$MISSFIRE" != "." ] && echo "  cd $MISSFIRE"
+echo "  ./build.sh -d"
+echo "  ./build.sh -i"
+echo "  ./build.sh -c"
+echo
+echo Rebuild and start the bank server with:
+echo "  ( cd $BANK_SERVICES ; ./build.sh -r )"
+echo
+echo Start the bank client with:
+echo "  ( cd $BANK/client ; python client.py )"
