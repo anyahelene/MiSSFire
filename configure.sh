@@ -32,17 +32,25 @@ echo "DOCKER_YML=\"$DOCKER_YML\""
 echo "DOCKER_YML_ORIGINAL=\"$DOCKER_YML_ORIGINAL\""
 }
 function arg_parse {
-	usage="$(basename "$0") [-h] [-m (Enable MTLS)] [-t (Enable Tokens)] [-w NUM (Number of server workers)] [-c NUM (Number of client processes)]"
+	usage="$(basename "$0") [-h] [-m True|False (Enable/Disable MTLS)] [-t True|False (Enable/Disable Tokens)] [-w NUM (Number of server workers)] [-c NUM (Number of client processes)]"
 
-	while getopts 'hmtw:c:' option; do
+	while getopts 'hm:t:w:c:' option; do
 		case "$option" in
 			h) echo "$usage"
 			   echo "defaults: "
 			   exit
 			   ;;
-			m) MTLS=True
+			m) if [ "$OPTARG" != "True" -a "$OPTARG" != "False" ]; then
+				echo "argument to -m should be True or False"
+				exit 1
+			   fi
+			   MTLS=$OPTARG
 			   ;;
-			t) TOKEN=True
+			t) if [ "$OPTARG" != "True" -a "$OPTARG" != "False" ]; then
+				echo "argument to -t should be True or False"
+				exit 1
+			   fi
+			   TOKEN=$OPTARG
 			   ;;
 			w) WORKERS=$OPTARG
 			   ;;
@@ -92,12 +100,14 @@ show_config > config/config.sh
 echo >> config/config.sh
 show_paths >> config/config.sh
 
+DEBUG=True
 echo editing $DOCKER_YML
-sed -i.bak -e "s/MTLS=.*$/MTLS=$MTLS/" -e "s/TOKEN=.*$/TOKEN=$TOKEN/" $DOCKER_YML
+sed -i.bak -e "s/MTLS=.*$/MTLS=$MTLS/" -e "s/TOKEN=.*$/TOKEN=$TOKEN/" -e "s/_DEBUG=.*$/_DEBUG=$DEBUG/" $DOCKER_YML
 echo editing $GUNICORN_CONFIG_PY
 sed -i.bak -e "s/^.*workers *= *.*$/workers = $WORKERS/" $GUNICORN_CONFIG_PY
 echo editing $CLIENT_PY
 sed -i.bak -e "s/^    numProcesses =.*$/    numProcesses = $CLIENTS/" -e "s/^ *IS_MISSFIRE *= *.*$/IS_MISSFIRE = $MTLS/" -e "s/^ *IS_MISSFIRE_TOKEN *= *.*$/IS_MISSFIRE_TOKEN = $TOKEN/" $CLIENT_PY
+sed -e "s/^    numProcesses =.*$/    numProcesses = 1/" -e "s/^ *IS_MISSFIRE *= *.*$/IS_MISSFIRE = $MTLS/" -e "s/^ *IS_MISSFIRE_TOKEN *= *.*$/IS_MISSFIRE_TOKEN = $TOKEN/" $CLIENT_PY > "$BANK/client/client_1.py"
 
 echo Reconfigure successful. To rebuild docker images, please run:
 echo
