@@ -1,16 +1,11 @@
 #!/bin/bash
 
-MISSFIRE_SERVICES="services"
-BANK_SERVICES="MicroBank/services"
+if [ ! -f config/config.sh ]; then
+	echo config/config.sh missing -- run ./configure.sh first
+	exit 1
+fi
 
-MISSFIRE_COMMONS="MiSSFire_client_commons"
-BANK_COMMONS="$BANK_SERVICES/common_files"
-
-MISSFIRE_CLIENT_DOCKER_IMAGE="docker_image_template/MiSSFire_client"
-MISSFIRE_SERVICES_DOCKER_IMAGE="docker_image_template/MiSSFire_services"
-
-DOCKER_YML="docker-compose.yml_"
-DOCKER_YML_ORIGINAL="docker-compose.yml_original"
+. config/config.sh
 
 function arg_parse {
 	usage="$(basename "$0") [-h] [-c (Copy MiSSFire files into the bank model)] [-d (Delete MiSSFire files from the bank model)] [-i (Build the necessary Docker images)]"
